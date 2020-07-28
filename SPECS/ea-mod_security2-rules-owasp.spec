@@ -12,6 +12,7 @@ URL: https://github.com/coreruleset/coreruleset
 Source: https://github.com/coreruleset/coreruleset/archive/v3.0.2.tar.gz
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+AutoReq:   no
 
 %description
 The OWASP ModSecurity Core Rule Set (CRS) is a set of generic attack detection
