@@ -1,6 +1,6 @@
 Name: ea-mod_security2-rules-owasp
 Summary: OWASP ModSecurity Core Rule Set (CRS)
-Version: 3.0.2
+Version: 3.3.0
 # Doing release_prefix this way for Release allows for OBS-proof versioning, See EA-4544 for more details
 %define release_prefix 1
 Release: %{release_prefix}%{?dist}.cpanel
@@ -58,5 +58,8 @@ fi
 /etc/apache2/conf.d/modsec_vendor_configs/OWASP3
 
 %changelog
+* Tue Jul 28 2020 Daniel Muey <dan@cpanel.net> - 3.3.0-1
+- EA-9202: Update ea-mod_security2-rules-owasp from v3.0.2 to v3.3.0
+
 * Tue Jul 28 2020 Dan Muey <dan@cpanel.net> - 3.0.2-1
 - ZC-5711: initial release to match version in internal system
