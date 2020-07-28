@@ -50,5 +50,5 @@ fi
 /etc/apache2/conf.d/modsec_vendor_configs/OWASP3
 
 %changelog
-* Jul 28 2020 Dan Muey <dan@cpanel.net> - 3.0.2-1
+* Tue Jul 28 2020 Dan Muey <dan@cpanel.net> - 3.0.2-1
 - ZC-5711: initial release to match version in internal system
