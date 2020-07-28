@@ -25,6 +25,11 @@ The OWASP ModSecurity Core Rule Set (CRS) is a set of generic attack detection
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/opt/cpanel/ea-mod_security2-rules-owasp
+
+%if 0%{?rhel} >= 8
+    perl -pi -e 's{#!/usr/bin/env python}{#!/usr/bin/env python3}' id_renumbering/update.py util/upgrade.py util/regexp-assemble/regexp-cmdline.py util/join-multiline-rules/join.py
+%endif
+
 /bin/cp -rf ./* $RPM_BUILD_ROOT/opt/cpanel/ea-mod_security2-rules-owasp
 
 mkdir -p $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/
