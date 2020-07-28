@@ -9,9 +9,9 @@
 
 # You should set the score to the proper threshold you would prefer. If kept at "@gt 0"
 # it will work similarly to previous Mod CRS rules and will create an event in the error_log
-# file if there are any rules that match. If you would like to lessen the number of events
+# file if there are any rules that match.  If you would like to lessen the number of events
 # generated in the error_log file, you should increase the anomaly score threshold to
-# something like "@gt 20". This would only generate an event in the error_log file if
+# something like "@gt 20".  This would only generate an event in the error_log file if
 # there are multiple lower severity rule matches or if any 1 higher severity item matches.
 #
 # You should also set the desired disruptive action (deny, redirect, etc...).
@@ -23,7 +23,13 @@
 
 # Alert and Block on High Anomaly Scores - this would block outbound data leakages
 #
-SecRule TX:OUTBOUND_ANOMALY_SCORE "@ge %{tx.outbound_anomaly_score_threshold}" "phase:4, id:959100, tag:'anomaly-evaluation', t:none, deny, msg:'Outbound Anomaly Score Exceeded (Total Score: %{TX.OUTBOUND_ANOMALY_SCORE})'"
+SecRule TX:OUTBOUND_ANOMALY_SCORE "@ge %{tx.outbound_anomaly_score_threshold}" \
+  "phase:4,\
+  id:959100,\
+  tag:'anomaly-evaluation',\
+  t:none,\
+  deny,\
+  msg:'Outbound Anomaly Score Exceeded (Total Score: %{TX.OUTBOUND_ANOMALY_SCORE})'"
 
 
 
