@@ -41,13 +41,15 @@ rm -rf $RPM_BUILD_ROOT
 
 %pre
 if [ $1 -eq 1 ] ; then
+
+    mkdir ~/old-cpanel-modsec2-rules-from-vendor-system
     # on install move voodoo dir and conf file (and its cache) out of the way
     if [ -d "/etc/apache2/conf.d/modsec_vendor_configs/OWASP3" ] ; then
-        mv /etc/apache2/conf.d/modsec_vendor_configs/OWASP3 /etc/apache2/conf.d/modsec_vendor_configs/OWASP3.old-from-vd
+        mv /etc/apache2/conf.d/modsec_vendor_configs/OWASP3 ~/old-cpanel-modsec2-rules-from-vendor-system/
     fi
 
-    mv -f /var/cpanel/modsec_vendors/meta_OWASP3.yaml /var/cpanel/modsec_vendors/meta_OWASP3.yaml.old-from-vd
-    mv -f /var/cpanel/modsec_vendors/meta_OWASP3.cache /var/cpanel/modsec_vendors/meta_OWASP3.cache.old-from-vd
+    mv -f /var/cpanel/modsec_vendors/meta_OWASP3.yaml ~/old-cpanel-modsec2-rules-from-vendor-system/
+    mv -f /var/cpanel/modsec_vendors/meta_OWASP3.cache ~/old-cpanel-modsec2-rules-from-vendor-system/
 fi
 
 %files
