@@ -9,7 +9,7 @@ Group: System Environment/Libraries
 License: Apache v2
 URL: https://github.com/coreruleset/coreruleset
 
-Source: https://github.com/coreruleset/coreruleset/archive/%{version}.tar.gz
+Source0: https://github.com/coreruleset/coreruleset/archive/%{version}.tar.gz
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReq:   no
@@ -21,7 +21,11 @@ The OWASP ModSecurity Core Rule Set (CRS) is a set of generic attack detection
  including the OWASP Top Ten, with a minimum of false alerts.
 
 %prep
-%setup -q -n coreruleset-%{version}
+
+# the tarball’s root dir is `coreruleset-coreruleset-<SHA>/`
+#   - maintaining that SHA would be tedious and prone to forgetting to do it until the first build failed
+#   - we can’t use `coreruleset-coreruleset-*` because it is executed as `cd 'coreruleset-coreruleset-*'`
+%setup -q -n %(tar tzf %{SOURCE0} | head -n 1)
 
 %install
 rm -rf $RPM_BUILD_ROOT
