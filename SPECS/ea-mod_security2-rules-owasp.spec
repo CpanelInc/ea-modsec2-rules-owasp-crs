@@ -9,7 +9,7 @@ Group: System Environment/Libraries
 License: Apache v2
 URL: https://github.com/coreruleset/coreruleset
 
-Source: https://github.com/coreruleset/coreruleset/archive/v3.0.2.tar.gz
+Source: https://github.com/coreruleset/coreruleset/archive/%{version}.tar.gz
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReq:   no
