@@ -1,4 +1,4 @@
-Name: ea-mod_security2-rules-owasp
+Name: ea-modsec2-rules-owasp-crs
 Summary: OWASP ModSecurity Core Rule Set (CRS)
 Version: 3.3.0
 # Doing release_prefix this way for Release allows for OBS-proof versioning, See EA-4544 for more details
@@ -25,16 +25,16 @@ The OWASP ModSecurity Core Rule Set (CRS) is a set of generic attack detection
 
 %install
 rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT/opt/cpanel/ea-mod_security2-rules-owasp
+mkdir -p $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs
 
 %if 0%{?rhel} >= 8
     perl -pi -e 's{#!/usr/bin/env python}{#!/usr/bin/env python3}' id_renumbering/update.py util/upgrade.py util/regexp-assemble/regexp-cmdline.py util/join-multiline-rules/join.py
 %endif
 
-/bin/cp -rf ./* $RPM_BUILD_ROOT/opt/cpanel/ea-mod_security2-rules-owasp
+/bin/cp -rf ./* $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs
 
 mkdir -p $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/
-ln -sf /opt/cpanel/ea-mod_security2-rules-owasp $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3
+ln -sf /opt/cpanel/ea-modsec2-rules-owasp-crs $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -54,12 +54,12 @@ fi
 
 %files
 %defattr(-, root, root, -)
-/opt/cpanel/ea-mod_security2-rules-owasp
+/opt/cpanel/ea-modsec2-rules-owasp-crs
 /etc/apache2/conf.d/modsec_vendor_configs/OWASP3
 
 %changelog
 * Tue Jul 28 2020 Daniel Muey <dan@cpanel.net> - 3.3.0-1
-- EA-9202: Update ea-mod_security2-rules-owasp from v3.0.2 to v3.3.0
+- EA-9202: Update ea-modsec2-rules-owasp-crs from v3.0.2 to v3.3.0
 
 * Tue Jul 28 2020 Dan Muey <dan@cpanel.net> - 3.0.2-1
 - ZC-5711: initial release to match version in internal system
