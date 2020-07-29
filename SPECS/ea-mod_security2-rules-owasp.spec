@@ -32,7 +32,7 @@ rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs
 
 %if 0%{?rhel} >= 8
-    perl -pi -e 's{#!/usr/bin/env python}{#!/usr/bin/env python3}' id_renumbering/update.py util/upgrade.py util/regexp-assemble/regexp-cmdline.py util/join-multiline-rules/join.py
+    perl -pi -e 's{#!/usr/bin/env python}{#!/usr/bin/env python3}' util/crs2-renumbering/update.py tests/regression/tests/base_positive_rules.py util/regexp-assemble/regexp-cmdline.py util/join-multiline-rules/join.py
 %endif
 
 /bin/cp -rf ./* $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs
