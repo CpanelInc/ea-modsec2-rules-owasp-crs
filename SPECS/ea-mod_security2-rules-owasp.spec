@@ -36,6 +36,7 @@ mkdir -p $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs
 %endif
 
 /bin/cp -rf ./* $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs
+/bin/cp -f ./crs-setup.conf.example $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs/crs-setup.conf
 
 mkdir -p $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/
 ln -sf /opt/cpanel/ea-modsec2-rules-owasp-crs $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3
