@@ -81,6 +81,12 @@ if [ $1 -eq 1 ] ; then
     fi
 fi
 
+%postun
+
+if [ $1 -eq 0 ] ; then
+    sed -i '/^Include "\/etc\/apache2\/conf\.d\/modsec_vendor_configs\/OWASP3\//d' /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
+fi
+
 %files
 %defattr(-, root, root, -)
 /opt/cpanel/ea-modsec2-rules-owasp-crs
