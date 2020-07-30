@@ -89,9 +89,9 @@ Do v3.0.2 then immediate v3.3.0 option then make these UI changes:
    * if `ea-apache24-mod_security2` is installed show a row for each `<PREFIX>-modsec2-rules-<ORGANIZATION>-<RULESET NAME>` package available
    * for each `ea-modsec<DIGITS>` that is installed show a row for each `<PREFIX>-modsec<DIGITS>-rules-<ORGANIZATION>-<RULESET NAME>` package available
    * each row should have an install/uninstall button (depending on its current state)
-2. _if they currently have the YAML bit enabled_: give them a “switch to the new hotness” button that installs the RPM (the RPM removes the voodoo bits)
-3. _if they do not have the YAML bit enabled_: do not show the “want to install it?” thing (should not even have a row):
-4. _if they try to install it via the YAML file_: it should error
+2. _if they currently have our voodoo YAML bit enabled_: give them a “switch to the new hotness” button that installs the RPM (the RPM removes the voodoo bits)
+3. _if they do not have our voodoo YAML bit enabled_: do not show the “want to install it?” thing (should not even have a row):
+4. _if they try to install our voodoo via the YAML file_: it should error
 
 ## Child Documents
 
