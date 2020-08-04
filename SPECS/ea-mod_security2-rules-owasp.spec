@@ -54,23 +54,24 @@ if [ $1 -eq 1 ] ; then
         mkdir -p %{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs
     fi
 
+    DATE_SUBDIR=`date --iso-8601=seconds`
     # on install move voodoo dir and conf file (and its cache) out of the way
     if [ -d "/etc/apache2/conf.d/modsec_vendor_configs/OWASP3" ] ; then
         touch %{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old
-        mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system
-        mv /etc/apache2/conf.d/modsec_vendor_configs/OWASP3 ~/old-cpanel-modsec2-rules-from-vendor-system/
+        mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR
+        mv /etc/apache2/conf.d/modsec_vendor_configs/OWASP3 ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR/
     fi
 
     if [ -f "/var/cpanel/modsec_vendors/meta_OWASP3.yaml" ] ; then
         touch %{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old
-        mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system
-        mv -f /var/cpanel/modsec_vendors/meta_OWASP3.yaml ~/old-cpanel-modsec2-rules-from-vendor-system/
+        mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR
+        mv -f /var/cpanel/modsec_vendors/meta_OWASP3.yaml ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR/
     fi
 
     # this file is left behind when removing the vendor so it is not an indicator of if they have the old vendor or not
     if [ -f "/var/cpanel/modsec_vendors/meta_OWASP3.cache" ] ; then
-        mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system
-        mv -f /var/cpanel/modsec_vendors/meta_OWASP3.cache ~/old-cpanel-modsec2-rules-from-vendor-system/
+        mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR
+        mv -f /var/cpanel/modsec_vendors/meta_OWASP3.cache ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR/
     fi
 fi
 
