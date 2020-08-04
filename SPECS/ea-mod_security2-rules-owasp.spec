@@ -48,7 +48,11 @@ rm -rf $RPM_BUILD_ROOT
 
 %pre
 if [ $1 -eq 1 ] ; then
-    mkdir -p %{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs
+    if [ -e "%{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old" ] ; then
+        unlink %{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old
+    else
+        mkdir -p %{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs
+    fi
 
     # on install move voodoo dir and conf file (and its cache) out of the way
     if [ -d "/etc/apache2/conf.d/modsec_vendor_configs/OWASP3" ] ; then
@@ -74,10 +78,15 @@ fi
 
 if [ $1 -eq 1 ] ; then
     if [ ! -f "%{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old" ] ; then
-         grep --silent '^Include "/etc/apache2/conf.d/modsec_vendor_configs/OWASP3/' /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
-         if [ "$?" -ne "0" ] ; then
-            sed -i '/## ModSecurity configuration file includes:/r /opt/cpanel/ea-modsec2-rules-owasp-crs/default_includes.conf' /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
-         fi
+        grep --silent '^Include "/etc/apache2/conf.d/modsec_vendor_configs/OWASP3/' /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
+        if [ "$?" -ne "0" ] ; then
+            grep --silent '## ModSecurity configuration file includes:' /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
+            if [ "$?" -eq "0" ] ; then
+                sed -i '/## ModSecurity configuration file includes:/r /opt/cpanel/ea-modsec2-rules-owasp-crs/default_includes.conf' /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
+            else
+                cat  /opt/cpanel/ea-modsec2-rules-owasp-crs/default_includes.conf >>  /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
+            fi
+        fi
     fi
 fi
 
