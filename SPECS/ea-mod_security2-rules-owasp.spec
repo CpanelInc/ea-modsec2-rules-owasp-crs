@@ -10,6 +10,7 @@ License: Apache v2
 URL: https://github.com/coreruleset/coreruleset
 
 Source0: https://github.com/coreruleset/coreruleset/archive/%{version}.tar.gz
+Source1: default_includes.conf
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReq:   no
@@ -36,6 +37,8 @@ mkdir -p $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs
 %endif
 
 /bin/cp -rf ./* $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs
+/bin/cp -f ./crs-setup.conf.example $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs/crs-setup.conf
+/bin/cp -f %{SOURCE1} $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs/
 
 mkdir -p $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/
 ln -sf /opt/cpanel/ea-modsec2-rules-owasp-crs $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3
@@ -45,22 +48,43 @@ rm -rf $RPM_BUILD_ROOT
 
 %pre
 if [ $1 -eq 1 ] ; then
+    mkdir -p %{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs
 
     # on install move voodoo dir and conf file (and its cache) out of the way
     if [ -d "/etc/apache2/conf.d/modsec_vendor_configs/OWASP3" ] ; then
+        touch %{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old
         mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system
         mv /etc/apache2/conf.d/modsec_vendor_configs/OWASP3 ~/old-cpanel-modsec2-rules-from-vendor-system/
     fi
 
     if [ -f "/var/cpanel/modsec_vendors/meta_OWASP3.yaml" ] ; then
+        touch %{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old
         mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system
         mv -f /var/cpanel/modsec_vendors/meta_OWASP3.yaml ~/old-cpanel-modsec2-rules-from-vendor-system/
     fi
 
+    # this file is left behind when removing the vendor so it is not an indicator of if they have the old vendor or not
     if [ -f "/var/cpanel/modsec_vendors/meta_OWASP3.cache" ] ; then
         mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system
         mv -f /var/cpanel/modsec_vendors/meta_OWASP3.cache ~/old-cpanel-modsec2-rules-from-vendor-system/
     fi
+fi
+
+%post
+
+if [ $1 -eq 1 ] ; then
+    if [ ! -f "%{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old" ] ; then
+         grep --silent '^Include "/etc/apache2/conf.d/modsec_vendor_configs/OWASP3/' /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
+         if [ "$?" -ne "0" ] ; then
+            sed -i '/## ModSecurity configuration file includes:/r /opt/cpanel/ea-modsec2-rules-owasp-crs/default_includes.conf' /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
+         fi
+    fi
+fi
+
+%postun
+
+if [ $1 -eq 0 ] ; then
+    sed -i '/^Include "\/etc\/apache2\/conf\.d\/modsec_vendor_configs\/OWASP3\//d' /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
 fi
 
 %files
