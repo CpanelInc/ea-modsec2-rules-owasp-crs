@@ -104,7 +104,7 @@ if [ "$DID_DEFAULTS" -eq "0" ] ; then
     ADDED_NEW_RULE=0
     NEWRULES_PATH=/opt/cpanel/ea-modsec2-rules-owasp-crs/new_includes.yaml
     NEWRULES_REL=/etc/apache2/conf.d/modsec_vendor_configs/OWASP3/rules
-    CONFIG_REL=modsec_vendor_configs/OWASP3/
+    CONFIG_REL=modsec_vendor_configs/OWASP3/rules
     PERL=/usr/local/cpanel/3rdparty/bin/perl
 
 
