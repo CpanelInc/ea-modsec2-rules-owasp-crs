@@ -79,6 +79,10 @@ fi
 
 %post
 
+/usr/local/cpanel/3rdparty/bin/perl -MCpanel::CachedDataStore -e \
+  'my $hr=Cpanel::CachedDataStore::loaddatastore($ARGV[0]);$hr->{data}{OWASP3} = { distribution => "ea-modsec2-rules-owasp-crs", url => "N/A, it is done via RPM"};Cpanel::CachedDataStore::savedatastore($ARGV[0], { data => $hr->{data} })' \
+  /var/cpanel/modsec_vendors/installed_from.yaml
+
 DID_DEFAULTS=0
 if [ $1 -eq 1 ] ; then
     if [ ! -f "%{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old" ] ; then
@@ -112,6 +116,10 @@ if [ "$DID_DEFAULTS" -eq "0" ] ; then
 fi
 
 %postun
+
+/usr/local/cpanel/3rdparty/bin/perl -MCpanel::CachedDataStore -e \
+  'my $hr=Cpanel::CachedDataStore::loaddatastore($ARGV[0])delete $hr->{data}{OWASP3};Cpanel::CachedDataStore::savedatastore($ARGV[0], { data => $hr->{data} })' \
+  /var/cpanel/modsec_vendors/installed_from.yaml
 
 if [ $1 -eq 0 ] ; then
     sed -i '/^Include "\/etc\/apache2\/conf\.d\/modsec_vendor_configs\/OWASP3\//d' /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
