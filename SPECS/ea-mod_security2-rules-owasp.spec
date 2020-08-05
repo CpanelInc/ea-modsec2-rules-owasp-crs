@@ -142,8 +142,25 @@ fi
 
 if [ $1 -eq 0 ] ; then
     echo "Removing OWASP3 config"
-    /usr/local/cpanel/scripts/modsec_vendor remove OWASP3
-    rm -rf /var/cpanel/modsec_vendors/meta_OWASP3.cache
+    PERL=/usr/local/cpanel/3rdparty/bin/perl
+
+    # We can't `/usr/local/cpanel/scripts/modsec_vendor remove OWASP3`
+    #   because it also removes the RPM owned files creating many warnings later
+    #   so we emulate the bits we need
+
+    # 1. update installed_from.yaml
+    $PERL -MCpanel::CachedDataStore -e \
+      'my $hr=Cpanel::CachedDataStore::loaddatastore($ARGV[0]);delete $hr->{data}{OWASP3};Cpanel::CachedDataStore::savedatastore($ARGV[0], { data => $hr->{data} })' \
+      /var/cpanel/modsec_vendors/installed_from.yaml
+
+    # 2. update modsec_cpanel_conf_datastore
+    $PERL -MYAML::Syck -e 'my $h=YAML::Syck::LoadFile($ARGV[0]);delete $h->{active_vendors}{OWASP3};delete $h->{vendor_updates}{OWASP3};for my $rid (keys %{$h->{disabled_rules}}) { delete $h->{disabled_rules}{$rid} if $h->{disabled_rules}{$rid} eq "OWASP3" } for my $pth (keys %{$h->{active_configs}}) { delete $h->{active_configs}{$pth} if $pth =~ m{^modsec_vendor_configs/OWASP3/} } YAML::Syck::DumpFile($ARGV[0], $h)' /var/cpanel/modsec_cpanel_conf_datastore
+
+    #. 3 kill caches
+    rm -rf /var/cpanel/modsec_vendors/meta_OWASP3.cache /var/cpanel/modsec_vendors/installed_from.cache /var/cpanel/modsec_cpanel_c    onf_datastore.cache
+
+    # 4. rebuild modsec2.cpanel.conf based on new modsec_cpanel_conf_datastore
+    $PERL -MWhostmgr::ModSecurity::ModsecCpanelConf -e 'Whostmgr::ModSecurity::ModsecCpanelConf->new->manipulate(sub {})'
 fi
 
 %files
