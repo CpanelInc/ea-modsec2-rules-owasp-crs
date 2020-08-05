@@ -10,9 +10,8 @@ License: Apache v2
 URL: https://github.com/coreruleset/coreruleset
 
 Source0: https://github.com/coreruleset/coreruleset/archive/%{version}.tar.gz
-Source1: default_includes.conf
-Source2: new_includes.conf
-Source3: meta_OWASP3.yaml
+Source1: new_includes.yaml
+Source2: meta_OWASP3.yaml
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReq:   no
@@ -41,9 +40,12 @@ mkdir -p $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs
 mkdir -p $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3
 /bin/cp -rf ./* $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3
 /bin/cp -f ./crs-setup.conf.example $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3/crs-setup.conf
+
+mkdir -p $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs/
 /bin/cp -f %{SOURCE1} $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs/
-/bin/cp -f %{SOURCE2} $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs/
-/bin/cp -f %{SOURCE3} $RPM_BUILD_ROOT/var/cpanel/modsec_vendors/meta_OWASP3.yaml
+
+mkdir -p $RPM_BUILD_ROOT/var/cpanel/modsec_vendors/
+/bin/cp -f %{SOURCE2} $RPM_BUILD_ROOT/var/cpanel/modsec_vendors/meta_OWASP3.yaml
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -83,47 +85,46 @@ fi
   'my $hr=Cpanel::CachedDataStore::loaddatastore($ARGV[0]);$hr->{data}{OWASP3} = { distribution => "ea-modsec2-rules-owasp-crs", url => "N/A, it is done via RPM"};Cpanel::CachedDataStore::savedatastore($ARGV[0], { data => $hr->{data} })' \
   /var/cpanel/modsec_vendors/installed_from.yaml
 
+/scripts/modsec_vendor enable OWASP3
+/scripts/modsec_vendor disable-updates OWASP3 # RPM will be doing the updates not this system
+
 DID_DEFAULTS=0
 if [ $1 -eq 1 ] ; then
     if [ ! -f "%{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old" ] ; then
-        grep --silent '^Include "/etc/apache2/conf.d/modsec_vendor_configs/OWASP3/' /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
+        grep --silent '  modsec_vendor_configs/OWASP3/' /var/cpanel/modsec_cpanel_conf_datastore
         if [ "$?" -ne "0" ] ; then
-            grep --silent '## ModSecurity configuration file includes:' /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
-            if [ "$?" -eq "0" ] ; then
-                DID_DEFAULTS=1
-                sed -i '/## ModSecurity configuration file includes:/r /opt/cpanel/ea-modsec2-rules-owasp-crs/default_includes.conf' /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
-            else
-                DID_DEFAULTS=1
-                cat /opt/cpanel/ea-modsec2-rules-owasp-crs/default_includes.conf >> /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
-            fi
+            DID_DEFAULTS=1
+            /scripts/modsec_vendor enable-configs OWASP3
         fi
     fi
 fi
 
 if [ "$DID_DEFAULTS" -eq "0" ] ; then
     echo "Checking new rules"
-    NEWRULES_PATH=/opt/cpanel/ea-modsec2-rules-owasp-crs/new_includes.conf
-
-    SYNTAX_CHECK=$(/usr/sbin/httpd -DSSL -e error -t -f /etc/apache2/conf/httpd.conf -C "Include '$NEWRULES_PATH'" 2>&1)
-    if [ "$?" -eq "0" ] ; then
-        echo "Adding new rules from $NEWRULES_PATH"
-        cat $NEWRULES_PATH >> /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
-    else
-        MSG="New rules ($NEWRULES_PATH) could not be added due to this error:\n$SYNTAX_CHECK\n"
-        echo -e $MSG
-        echo -e "[%{name} v%{version}-%{release}]\n$MSG[/%{name}]\n" >> /usr/local/cpanel/logs/error_log
-    fi
+    NEWRULES_PATH=/opt/cpanel/ea-modsec2-rules-owasp-crs/new_includes.yaml
+    NEWRULES_REL=/etc/apache2/conf.d/modsec_vendor_configs/OWASP3/rules
+    CONFIG_REL=modsec_vendor_configs/OWASP3/
+    PERL=/usr/local/cpanel/3rdparty/bin/perl
+    for RULE in $($PERL -MYAML::Syck -e 'my $h=YAML::Syck::LoadFile($ARGV[0]);if (exists $h->{$ARGV[1]}) { print "$_\n" for @{ $h->{$ARGV[1]} } }' $NEWRULES_PATH %{version})
+    do
+        $PERL -MYAML::Syck -e 'my $h=YAML::Syck::LoadFile($ARGV[0]);exit( $h->{active_configs}{$ARGV[1]} ? 0 : 1)' /var/cpanel/modsec_cpanel_conf_datastore $CONFIG_REL/$RULE
+        if [ "$?" -eq "1" ] ; then
+            SYNTAX_CHECK=$(/usr/sbin/httpd -DSSL -e error -t -f /etc/apache2/conf/httpd.conf -C "Include '$NEWRULES_REL/$RULE'" 2>&1)
+            if [ "$?" -eq "0" ] ; then
+                echo "Adding new rule set: $RULE"
+                $PERL -MYAML::Syck -e 'my $h=YAML::Syck::LoadFile($ARGV[0]);$h->{active_configs}{$ARGV[1]} = 1;YAML::Syck::DumpFile($ARGV[0], $h)' /var/cpanel/modsec_cpanel_conf_datastore $CONFIG_REL/$RULE
+            else
+                MSG="New rule set ($RULE) could not be added due to this error:\n$SYNTAX_CHECK\n"
+                echo -e $MSG
+                echo -e "[%{name} v%{version}-%{release}]\n$MSG[/%{name}]\n" >> /usr/local/cpanel/logs/error_log
+            fi
+        fi
+    done
 fi
 
 %postun
 
-/usr/local/cpanel/3rdparty/bin/perl -MCpanel::CachedDataStore -e \
-  'my $hr=Cpanel::CachedDataStore::loaddatastore($ARGV[0])delete $hr->{data}{OWASP3};Cpanel::CachedDataStore::savedatastore($ARGV[0], { data => $hr->{data} })' \
-  /var/cpanel/modsec_vendors/installed_from.yaml
-
-if [ $1 -eq 0 ] ; then
-    sed -i '/^Include "\/etc\/apache2\/conf\.d\/modsec_vendor_configs\/OWASP3\//d' /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
-fi
+/scripts/modsec_vendor remove OWASP3
 
 %files
 %defattr(-, root, root, -)
