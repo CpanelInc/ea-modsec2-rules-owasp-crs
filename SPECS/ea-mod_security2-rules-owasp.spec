@@ -134,6 +134,7 @@ fi
 %postun
 
 /usr/local/cpanel/scripts/modsec_vendor remove OWASP3
+rm -rf /var/cpanel/modsec_vendors/meta_OWASP3.cache
 
 %files
 %defattr(-, root, root, -)
