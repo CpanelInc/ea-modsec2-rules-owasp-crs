@@ -12,6 +12,7 @@ URL: https://github.com/coreruleset/coreruleset
 Source0: https://github.com/coreruleset/coreruleset/archive/%{version}.tar.gz
 Source1: default_includes.conf
 Source2: new_includes.conf
+Source3: meta_OWASP3.yaml
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReq:   no
@@ -37,13 +38,12 @@ mkdir -p $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs
     perl -pi -e 's{#!/usr/bin/env python}{#!/usr/bin/env python3}' util/crs2-renumbering/update.py tests/regression/tests/base_positive_rules.py util/regexp-assemble/regexp-cmdline.py util/join-multiline-rules/join.py
 %endif
 
-/bin/cp -rf ./* $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs
-/bin/cp -f ./crs-setup.conf.example $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs/crs-setup.conf
+mkdir -p $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3
+/bin/cp -rf ./* $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3
+/bin/cp -f ./crs-setup.conf.example $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3/crs-setup.conf
 /bin/cp -f %{SOURCE1} $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs/
 /bin/cp -f %{SOURCE2} $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs/
-
-mkdir -p $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/
-ln -sf /opt/cpanel/ea-modsec2-rules-owasp-crs $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3
+/bin/cp -f %{SOURCE3} $RPM_BUILD_ROOT/var/cpanel/modsec_vendors/meta_OWASP3.yaml
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -121,6 +121,7 @@ fi
 %defattr(-, root, root, -)
 /opt/cpanel/ea-modsec2-rules-owasp-crs
 /etc/apache2/conf.d/modsec_vendor_configs/OWASP3
+/var/cpanel/modsec_vendors/meta_OWASP3.yaml
 
 %changelog
 * Tue Jul 28 2020 Daniel Muey <dan@cpanel.net> - 3.3.0-1
