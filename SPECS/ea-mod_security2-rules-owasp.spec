@@ -85,8 +85,8 @@ fi
   'my $hr=Cpanel::CachedDataStore::loaddatastore($ARGV[0]);$hr->{data}{OWASP3} = { distribution => "ea-modsec2-rules-owasp-crs", url => "N/A, it is done via RPM"};Cpanel::CachedDataStore::savedatastore($ARGV[0], { data => $hr->{data} })' \
   /var/cpanel/modsec_vendors/installed_from.yaml
 
-/scripts/modsec_vendor enable OWASP3
-/scripts/modsec_vendor disable-updates OWASP3 # RPM will be doing the updates not this system
+/usr/local/cpanel/scripts/modsec_vendor enable OWASP3
+/usr/local/cpanel/scripts/modsec_vendor disable-updates OWASP3 # RPM will be doing the updates not this system
 
 DID_DEFAULTS=0
 if [ $1 -eq 1 ] ; then
@@ -94,7 +94,7 @@ if [ $1 -eq 1 ] ; then
         grep --silent '  modsec_vendor_configs/OWASP3/' /var/cpanel/modsec_cpanel_conf_datastore
         if [ "$?" -ne "0" ] ; then
             DID_DEFAULTS=1
-            /scripts/modsec_vendor enable-configs OWASP3
+            /usr/local/cpanel/scripts/modsec_vendor enable-configs OWASP3
         fi
     fi
 fi
@@ -124,7 +124,7 @@ fi
 
 %postun
 
-/scripts/modsec_vendor remove OWASP3
+/usr/local/cpanel/scripts/modsec_vendor remove OWASP3
 
 %files
 %defattr(-, root, root, -)
