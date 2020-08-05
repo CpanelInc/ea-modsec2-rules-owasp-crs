@@ -101,16 +101,20 @@ fi
 
 if [ "$DID_DEFAULTS" -eq "0" ] ; then
     echo "Checking new rules"
+    ADDED_NEW_RULE=0
     NEWRULES_PATH=/opt/cpanel/ea-modsec2-rules-owasp-crs/new_includes.yaml
     NEWRULES_REL=/etc/apache2/conf.d/modsec_vendor_configs/OWASP3/rules
     CONFIG_REL=modsec_vendor_configs/OWASP3/
     PERL=/usr/local/cpanel/3rdparty/bin/perl
+
+
     for RULE in $($PERL -MYAML::Syck -e 'my $h=YAML::Syck::LoadFile($ARGV[0]);if (exists $h->{$ARGV[1]}) { print "$_\n" for @{ $h->{$ARGV[1]} } }' $NEWRULES_PATH %{version})
     do
         $PERL -MYAML::Syck -e 'my $h=YAML::Syck::LoadFile($ARGV[0]);exit( $h->{active_configs}{$ARGV[1]} ? 0 : 1)' /var/cpanel/modsec_cpanel_conf_datastore $CONFIG_REL/$RULE
         if [ "$?" -eq "1" ] ; then
             SYNTAX_CHECK=$(/usr/sbin/httpd -DSSL -e error -t -f /etc/apache2/conf/httpd.conf -C "Include '$NEWRULES_REL/$RULE'" 2>&1)
             if [ "$?" -eq "0" ] ; then
+                ADDED_NEW_RULE=1
                 echo "Adding new rule set: $RULE"
                 $PERL -MYAML::Syck -e 'my $h=YAML::Syck::LoadFile($ARGV[0]);$h->{active_configs}{$ARGV[1]} = 1;YAML::Syck::DumpFile($ARGV[0], $h)' /var/cpanel/modsec_cpanel_conf_datastore $CONFIG_REL/$RULE
             else
@@ -120,6 +124,11 @@ if [ "$DID_DEFAULTS" -eq "0" ] ; then
             fi
         fi
     done
+
+    if [ "$ADDED_NEW_RULE" -eq "1" ] ; then
+        echo "Rebuilding /etc/apache2/conf.d/modsec/modsec2.cpanel.conf with new rules"
+        $PERL -MWhostmgr::ModSecurity::ModsecCpanelConf -e 'Whostmgr::ModSecurity::ModsecCpanelConf->new->manipulate(sub {})'
+    fi
 fi
 
 %postun
