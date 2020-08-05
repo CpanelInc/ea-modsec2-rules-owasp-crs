@@ -11,6 +11,7 @@ URL: https://github.com/coreruleset/coreruleset
 
 Source0: https://github.com/coreruleset/coreruleset/archive/%{version}.tar.gz
 Source1: default_includes.conf
+Source2: new_includes.conf
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReq:   no
@@ -39,6 +40,7 @@ mkdir -p $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs
 /bin/cp -rf ./* $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs
 /bin/cp -f ./crs-setup.conf.example $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs/crs-setup.conf
 /bin/cp -f %{SOURCE1} $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs/
+/bin/cp -f %{SOURCE2} $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs/
 
 mkdir -p $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/
 ln -sf /opt/cpanel/ea-modsec2-rules-owasp-crs $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3
@@ -77,17 +79,35 @@ fi
 
 %post
 
+DID_DEFAULTS=0
 if [ $1 -eq 1 ] ; then
     if [ ! -f "%{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old" ] ; then
         grep --silent '^Include "/etc/apache2/conf.d/modsec_vendor_configs/OWASP3/' /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
         if [ "$?" -ne "0" ] ; then
             grep --silent '## ModSecurity configuration file includes:' /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
             if [ "$?" -eq "0" ] ; then
+                DID_DEFAULTS=1
                 sed -i '/## ModSecurity configuration file includes:/r /opt/cpanel/ea-modsec2-rules-owasp-crs/default_includes.conf' /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
             else
-                cat  /opt/cpanel/ea-modsec2-rules-owasp-crs/default_includes.conf >>  /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
+                DID_DEFAULTS=1
+                cat /opt/cpanel/ea-modsec2-rules-owasp-crs/default_includes.conf >> /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
             fi
         fi
+    fi
+fi
+
+if [ "$DID_DEFAULTS" -eq "0" ] ; then
+    echo "Checking new rules"
+    NEWRULES_PATH=/opt/cpanel/ea-modsec2-rules-owasp-crs/new_includes.conf
+
+    SYNTAX_CHECK=$(/usr/sbin/httpd -DSSL -e error -t -f /etc/apache2/conf/httpd.conf -C "Include '$NEWRULES_PATH'" 2>&1)
+    if [ "$?" -eq "0" ] ; then
+        echo "Adding new rules from $NEWRULES_PATH"
+        cat $NEWRULES_PATH >> /etc/apache2/conf.d/modsec/modsec2.cpanel.conf
+    else
+        MSG="New rules ($NEWRULES_PATH) could not be added due to this error:\n$SYNTAX_CHECK\n"
+        echo -e $MSG
+        echo -e "[%{name} v%{version}-%{release}]\n$MSG[/%{name}]\n" >> /usr/local/cpanel/logs/error_log
     fi
 fi
 
