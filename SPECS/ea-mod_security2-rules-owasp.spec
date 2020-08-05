@@ -41,7 +41,7 @@ mkdir -p $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3
 /bin/cp -rf ./* $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3
 
 # the system will pull these into to the list of rule sets unless they are renamed
-for conf in $($RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3/util/honeypot-sensor/*.conf)
+for conf in $(ls $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3/util/honeypot-sensor/*.conf)
 do
     /bin/mv -f $conf $conf.example
 done
@@ -138,7 +138,7 @@ if [ "$DID_DEFAULTS" -eq "0" ] ; then
     fi
 fi
 
-%postun
+%preun
 
 if [ $1 -eq 0 ] ; then
     echo "Removing OWASP3 config"
