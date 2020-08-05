@@ -39,6 +39,13 @@ mkdir -p $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs
 
 mkdir -p $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3
 /bin/cp -rf ./* $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3
+
+# the system will pull these into to the list of rule sets unless they are renamed
+for conf in $($RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3/util/honeypot-sensor/*.conf)
+do
+    /bin/mv -f $conf $conf.example
+done
+
 /bin/cp -f ./crs-setup.conf.example $RPM_BUILD_ROOT/etc/apache2/conf.d/modsec_vendor_configs/OWASP3/crs-setup.conf
 
 mkdir -p $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs/
