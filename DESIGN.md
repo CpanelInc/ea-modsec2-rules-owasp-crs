@@ -34,7 +34,7 @@ We need to factor in this information:
    * it sounds more like rules written for 3.0 will work on 2.8 but not 3.1 but 2.8 won’t work on 3.0
 3. the current voodoo based rules get installed to /etc/apache2/conf.d/modsec_vendor_configs/OWASP3/
 4. the actual vendor configuration that Apache uses to turn vendor rules on or off/that can be managed via WHM are in /etc/apache2/conf.d/modsec/modsec2.cpanel.conf (Owned by ea-apache24-mod_security2)
-5. arbitrary custom rules are put into /etc/apache2/conf.d/modsec/modsec2.cpanel.conf (Owned by ea-apache24-mod_security2)
+5. arbitrary custom rules are put into /etc/apache2/conf.d/modsec/modsec2.user.conf (Owned by ea-apache24-mod_security2)
 
 ### Prep for modsec3
 
