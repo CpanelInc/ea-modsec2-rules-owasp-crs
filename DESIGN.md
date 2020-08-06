@@ -67,7 +67,11 @@ Since we have to work around existing stuff there are not a lot of options. The 
 
 If the RPM installs and owns `/etc/apache2/conf.d/modsec_vendor_configs/OWASP3/` then everything should just work w/ a minimum of changes to one UI (no API call or backend changes necessary).
 
-The RPM needs to move the voodoo files out of the way on install. On uninstall we don’t want to restore the backed up voodoo files because if they made any changes that are not compatible it could take Apache down.
+The RPM needs to take over the voodoo files/configuration on install. That includes setting it to enabled and turning off updates (so the system does not try to update a thing that does not use that update system). On uninstall we don’t want to restore the backed up voodoo files because if they made any changes that are not compatible it could take Apache down.
+
+The RPM should enable all the rulesets on install (unless there is existing OWASP3 rulesets).
+
+On install (unless we’ve enabled all rulesets) and update we want to enable new rulesets (checking the syntax before adding).
 
 We do not want to make the ea-apache24-mod_security2 require this ruleset because everyone has mod security so everyone would get rules they didn’t ask for, which is begging for tickets and ill will.
 
@@ -89,9 +93,13 @@ Do v3.0.2 then immediate v3.3.0 option then make these UI changes:
    * if `ea-apache24-mod_security2` is installed show a row for each `<PREFIX>-modsec2-rules-<ORGANIZATION>-<RULESET NAME>` package available
    * for each `ea-modsec<DIGITS>` that is installed show a row for each `<PREFIX>-modsec<DIGITS>-rules-<ORGANIZATION>-<RULESET NAME>` package available
    * each row should have an install/uninstall button (depending on its current state)
+   * we could instead use the existing pattern and show each RPM that is available but uninstalled as a row that says “this is not installed” and has an install button
 2. _if they currently have our voodoo YAML bit enabled_: give them a “switch to the new hotness” button that installs the RPM (the RPM removes the voodoo bits)
 3. _if they do not have our voodoo YAML bit enabled_: do not show the “want to install it?” thing (should not even have a row):
 4. _if they try to install our voodoo via the YAML file_: it should error
+5. The table that shows vendors, when it gets to an RPM based rule set:
+  * Updates: should be disabled/clear that this is moot (ZC-7305 has a patch that makes it “RPM: Always Updated”)
+  * Delete: should take them to the EA4 provision screen (ZC-7305 has a patch that does that)
 
 ## Child Documents
 
