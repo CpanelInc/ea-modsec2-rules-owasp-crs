@@ -1,0 +1,7 @@
+---
+is_rpm: 1
+attributes:
+  installed_from: https://httpupdate.cpanel.net/fake-URL-to-show-vendor-correctly-with-RPM/with-RPMs-this-field-is-irrelevant/meta_OWASP3.yaml
+  vendor_url: https://go.cpanel.net/modsecurityowasp
+  description: OWASP ModSecurity 2.9 Core Rule Set (via RPM ea-modsec2-rules-owasp-crs)
+  name: OWASP CRS for ModSec 2.9 (via RPM)
