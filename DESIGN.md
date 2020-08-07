@@ -75,7 +75,7 @@ On install (unless we’ve enabled all rulesets) and update we want to enable ne
 
 We do not want to make the ea-apache24-mod_security2 require this ruleset because everyone has mod security so everyone would get rules they didn’t ask for, which is begging for tickets and ill will.
 
-### Approaches
+### Package Approaches
 
 | Approach | Pro | Con | Notes |
 | ---------|-----|-----| ----- |
@@ -83,7 +83,19 @@ We do not want to make the ea-apache24-mod_security2 require this ruleset becaus
 | Do v3.0.2 first thing, update to v3.3.0 in a few months | Should be most likely to keep working when RPM is installed | If we update to 3.3.0 and there are problems we break everyone at the same time | Nope |
 | Do v3.0.2, then immedietly update to v3.3.0 | Opt in to 3.3.0 so if there is a problem we effect a minimum of servers | If there is a huge problem that doofs a tons of people we can `et rollback` to the 3.0.2 version | Opt in via CLI, UI, or feature showcase |
 
+### Good UX on Old Versions
+
+There are a few ULC items that could confuse users and/or cause problems if they were to use RPM based mod sec rule vendors (see CPANEL-33703 for details).
+
+| Approach | Pro | Con | Notes |
+| ---------|-----|-----| ----- |
+| old versions can deal w/ bad UX, maybe backport CPANEL-33703 to 90? | very little work | older verison will have bad UX | N/A - it is what it is |
+| Backport CPANEL-33703 from 92 to LTS (86) | Sane method | People who stay on old versions are unlikely to update to the new version | At least support could say, update your 86 and it won’t be weird |
+| Have an RPM apply a patch of what would have been backported | All supported versions would have good UX | It is really gross to change files that belong to the ULC install | N/A - it is what it is |
+
 ### Initial Conclusion
+
+#### Package Approach
 
 Do v3.0.2 then immediate v3.3.0 option then make these UI changes:
 
@@ -100,6 +112,10 @@ Do v3.0.2 then immediate v3.3.0 option then make these UI changes:
 5. The table that shows vendors, when it gets to an RPM based rule set:
   * Updates: should be disabled/clear that this is moot (ZC-7305 has a patch that makes it “RPM: Always Updated”)
   * Delete: should take them to the EA4 provision screen (ZC-7305 has a patch that does that)
+
+#### Good UX on Old Versions
+
+Initially, try for backport CPANEL-33703 to LTS and adjust based on pushback.
 
 ## Child Documents
 
