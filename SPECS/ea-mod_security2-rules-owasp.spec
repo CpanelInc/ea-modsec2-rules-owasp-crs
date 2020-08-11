@@ -84,6 +84,13 @@ if [ $1 -eq 1 ] ; then
         mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR
         mv -f /var/cpanel/modsec_vendors/meta_OWASP3.cache ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR/
     fi
+
+    # v2 is not compatible w/ EA4's mod sec version. We only want to back it up
+    if [ -d "/etc/apache2/conf.d/modsec_vendor_configs/OWASP" ] ; then
+        mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR
+        touch ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR/had_OWASP-v2
+        /usr/local/cpanel/scripts/modsec_vendor remove OWASP
+    fi
 fi
 
 %post
