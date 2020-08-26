@@ -10,7 +10,7 @@ License: Apache v2
 URL: https://github.com/coreruleset/coreruleset
 
 Provides: ea-modsec-rules-owasp-crs
-Conflicts: ea-modsec-rules-owasp-crs
+Conflicts: ea-modsec-rules-owasp-crs ea-nginx
 
 Source0: https://github.com/coreruleset/coreruleset/archive/%{version}.tar.gz
 Source1: new_includes.yaml
