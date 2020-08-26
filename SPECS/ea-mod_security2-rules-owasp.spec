@@ -9,6 +9,9 @@ Group: System Environment/Libraries
 License: Apache v2
 URL: https://github.com/coreruleset/coreruleset
 
+Provides: ea-modsec-rules-owasp-crs
+Conflicts: ea-modsec-rules-owasp-crs ea-nginx
+
 Source0: https://github.com/coreruleset/coreruleset/archive/%{version}.tar.gz
 Source1: new_includes.yaml
 Source2: meta_OWASP3.yaml
@@ -53,6 +56,7 @@ mkdir -p $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs/
 
 mkdir -p $RPM_BUILD_ROOT/var/cpanel/modsec_vendors/
 /bin/cp -f %{SOURCE2} $RPM_BUILD_ROOT/var/cpanel/modsec_vendors/meta_OWASP3.yaml
+/bin/cp -f %{SOURCE2} $RPM_BUILD_ROOT/opt/cpanel/ea-modsec2-rules-owasp-crs/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -175,6 +179,7 @@ fi
 /opt/cpanel/ea-modsec2-rules-owasp-crs
 /etc/apache2/conf.d/modsec_vendor_configs/OWASP3
 /var/cpanel/modsec_vendors/meta_OWASP3.yaml
+/opt/cpanel/ea-modsec2-rules-owasp-crs/meta_OWASP3.yaml
 
 %changelog
 * Tue Jul 28 2020 Daniel Muey <dan@cpanel.net> - 3.3.0-1
