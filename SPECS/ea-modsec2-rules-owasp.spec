@@ -11,6 +11,7 @@ URL: https://github.com/coreruleset/coreruleset
 
 Provides: ea-modsec-rules-owasp-crs
 Conflicts: ea-modsec-rules-owasp-crs ea-nginx
+Requires: ea-apache24-mod_security2
 
 Source0: https://github.com/coreruleset/coreruleset/archive/%{version}.tar.gz
 Source1: new_includes.yaml
