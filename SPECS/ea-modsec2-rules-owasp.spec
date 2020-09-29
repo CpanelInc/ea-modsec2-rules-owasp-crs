@@ -175,6 +175,9 @@ if [ $1 -eq 0 ] ; then
 
     # 4. rebuild modsec2.cpanel.conf based on new modsec_cpanel_conf_datastore
     $PERL -MWhostmgr::ModSecurity::ModsecCpanelConf -e 'Whostmgr::ModSecurity::ModsecCpanelConf->new->manipulate(sub {})'
+
+    # 5. remove updates-disabled from yum.conf
+    $PERL -MCpanel::SysPkgs -e 'my $pkg = "ea-modsec2-rules-owasp-crs";my $sp = Cpanel::SysPkgs->new;$sp->parse_yum_conf;if ( grep { $_ eq $pkg } split /\s+/, $sp->{original_exclude_string} ) {$sp->{exclude_string} =~ s/(?:^$pkg$|^$pkg\s+|\s+$pkg\s+|\s+$pkg$)//g; $sp->write_yum_conf;}'
 fi
 
 %files
