@@ -2,7 +2,7 @@ Name: ea-modsec2-rules-owasp-crs
 Summary: OWASP ModSecurity Core Rule Set (CRS)
 Version: 3.3.0
 # Doing release_prefix this way for Release allows for OBS-proof versioning, See EA-4544 for more details
-%define release_prefix 2
+%define release_prefix 3
 Release: %{release_prefix}%{?dist}.cpanel
 Vendor: cPanel, Inc.
 Group: System Environment/Libraries
@@ -104,8 +104,10 @@ fi
   'my $hr=Cpanel::CachedDataStore::loaddatastore($ARGV[0]);$hr->{data}{OWASP3} = { distribution => "ea-modsec2-rules-owasp-crs", url => "N/A, it is done via RPM"};Cpanel::CachedDataStore::savedatastore($ARGV[0], { data => $hr->{data} })' \
   /var/cpanel/modsec_vendors/installed_from.yaml
 
-/usr/local/cpanel/scripts/modsec_vendor enable OWASP3
-/usr/local/cpanel/scripts/modsec_vendor disable-updates OWASP3 # RPM will be doing the updates not this system
+if [ ! -f "%{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old" ] ; then
+    /usr/local/cpanel/scripts/modsec_vendor enable OWASP3
+    /usr/local/cpanel/scripts/modsec_vendor enable-updates OWASP3
+fi
 
 DID_DEFAULTS=0
 if [ $1 -eq 1 ] ; then
@@ -183,6 +185,9 @@ fi
 /opt/cpanel/ea-modsec2-rules-owasp-crs/meta_OWASP3.yaml
 
 %changelog
+* Tue Sep 29 2020 Daniel Muey <dan@cpanel.net> - 3.3.0-3
+- ZC-7337: Changes to support ULC enabling/disabling updates for an RPM based vendor
+
 * Wed Sep 02 2020 Daniel Muey <dan@cpanel.net> - 3.3.0-2
 - ZC-7376: Bump release_prefix to work around OBS event
 
