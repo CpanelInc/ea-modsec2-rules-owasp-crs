@@ -180,6 +180,11 @@ if [ $1 -eq 0 ] ; then
     $PERL -MCpanel::SysPkgs -e 'my $pkg = "ea-modsec2-rules-owasp-crs";my $sp = Cpanel::SysPkgs->new;$sp->parse_yum_conf;if ( grep { $_ eq $pkg } split /\s+/, $sp->{original_exclude_string} ) {$sp->{exclude_string} =~ s/(?:^$pkg$|^$pkg\s+|\s+$pkg\s+|\s+$pkg$)//g; $sp->write_yum_conf;}'
 fi
 
+%posttrans
+
+PERL=/usr/local/cpanel/3rdparty/bin/perl
+$PERL -MWhostmgr::ModSecurity::ModsecCpanelConf -e 'Whostmgr::ModSecurity::ModsecCpanelConf->new->manipulate(sub {})'
+
 %files
 %defattr(-, root, root, -)
 /opt/cpanel/ea-modsec2-rules-owasp-crs
