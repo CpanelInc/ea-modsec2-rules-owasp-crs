@@ -2,7 +2,7 @@ Name: ea-modsec2-rules-owasp-crs
 Summary: OWASP ModSecurity Core Rule Set (CRS)
 Version: 3.3.0
 # Doing release_prefix this way for Release allows for OBS-proof versioning, See EA-4544 for more details
-%define release_prefix 3
+%define release_prefix 4
 Release: %{release_prefix}%{?dist}.cpanel
 Vendor: cPanel, Inc.
 Group: System Environment/Libraries
@@ -104,9 +104,17 @@ fi
   'my $hr=Cpanel::CachedDataStore::loaddatastore($ARGV[0]);$hr->{data}{OWASP3} = { distribution => "ea-modsec2-rules-owasp-crs", url => "N/A, it is done via RPM"};Cpanel::CachedDataStore::savedatastore($ARGV[0], { data => $hr->{data} })' \
   /var/cpanel/modsec_vendors/installed_from.yaml
 
+UPDATES_DISABLED=0
 if [ ! -f "%{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old" ] ; then
     /usr/local/cpanel/scripts/modsec_vendor enable OWASP3
     /usr/local/cpanel/scripts/modsec_vendor enable-updates OWASP3
+else
+   $PERL -MYAML::Syck -E 'my $h=YAML::Syck::LoadFile($ARGV[0]);exit(exists $h->{vendor_updates}{$ARGV[1]} ? 0 : 1);' /var/cpanel/modsec_cpanel_conf_datastore OWASP3
+   if [ "$?" -ne "0" ] ; then
+      UPDATES_DISABLED=1
+      # this will add the yum.conf exclude if it is missing
+      /usr/local/cpanel/scripts/modsec_vendor disable-updates OWASP3
+   fi
 fi
 
 DID_DEFAULTS=0
@@ -120,7 +128,7 @@ if [ $1 -eq 1 ] ; then
     fi
 fi
 
-if [ "$DID_DEFAULTS" -eq "0" ] ; then
+if [ "$DID_DEFAULTS" -eq "0" -a "$UPDATES_DISABLED" -eq "0" ] ; then
     echo "Checking new rules"
     ADDED_NEW_RULE=0
     NEWRULES_PATH=/opt/cpanel/ea-modsec2-rules-owasp-crs/new_includes.yaml
@@ -193,6 +201,9 @@ $PERL -MWhostmgr::ModSecurity::ModsecCpanelConf -e 'Whostmgr::ModSecurity::Modse
 /opt/cpanel/ea-modsec2-rules-owasp-crs/meta_OWASP3.yaml
 
 %changelog
+* Tue Oct 06 2020 Daniel Muey <dan@cpanel.net> - 3.3.0-4
+- ZC-7710: If already disabled, re-disable to get the yum.conf to match reality
+
 * Tue Sep 29 2020 Daniel Muey <dan@cpanel.net> - 3.3.0-3
 - ZC-7337: Changes to support ULC enabling/disabling updates for an RPM based vendor
 
