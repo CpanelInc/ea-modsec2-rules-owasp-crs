@@ -109,6 +109,8 @@ if [ ! -f "%{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old" ]
     /usr/local/cpanel/scripts/modsec_vendor enable OWASP3
     /usr/local/cpanel/scripts/modsec_vendor enable-updates OWASP3
 else
+   PERL=/usr/local/cpanel/3rdparty/bin/perl
+
    $PERL -MYAML::Syck -E 'my $h=YAML::Syck::LoadFile($ARGV[0]);exit(exists $h->{vendor_updates}{$ARGV[1]} ? 0 : 1);' /var/cpanel/modsec_cpanel_conf_datastore OWASP3
    if [ "$?" -ne "0" ] ; then
       UPDATES_DISABLED=1
