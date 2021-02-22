@@ -2,7 +2,7 @@ Name: ea-modsec2-rules-owasp-crs
 Summary: OWASP ModSecurity Core Rule Set (CRS)
 Version: 3.3.0
 # Doing release_prefix this way for Release allows for OBS-proof versioning, See EA-4544 for more details
-%define release_prefix 4
+%define release_prefix 5
 Release: %{release_prefix}%{?dist}.cpanel
 Vendor: cPanel, Inc.
 Group: System Environment/Libraries
@@ -10,7 +10,7 @@ License: Apache v2
 URL: https://github.com/coreruleset/coreruleset
 
 Provides: ea-modsec-rules-owasp-crs
-Conflicts: ea-modsec-rules-owasp-crs ea-nginx
+Conflicts: ea-modsec-rules-owasp-crs
 Requires: ea-apache24-mod_security2
 
 Source0: https://github.com/coreruleset/coreruleset/archive/%{version}.tar.gz
@@ -203,6 +203,9 @@ $PERL -MWhostmgr::ModSecurity::ModsecCpanelConf -e 'Whostmgr::ModSecurity::Modse
 /opt/cpanel/ea-modsec2-rules-owasp-crs/meta_OWASP3.yaml
 
 %changelog
+* Mon Feb 22 2021 Daniel Muey <dan@cpanel.net> - 3.3.0-5
+- ZC-8471: conflict w/ modsec 3 not ea-nginx
+
 * Tue Oct 06 2020 Daniel Muey <dan@cpanel.net> - 3.3.0-4
 - ZC-7710: If already disabled, re-disable to get the yum.conf to match reality
 
