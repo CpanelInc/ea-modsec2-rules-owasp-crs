@@ -29,14 +29,24 @@ sub _get_required {
     }
 
     # get $version, $url, $name from $res
-    my $latest  = Cpanel::JSON::Load( $res->{content} )->[0];
-    my $version = $latest->{tag_name};
-    die "Could not determine version from github\n" if !$version;
+    my ( $version, $url, $name );
+    my $releases_hr = Cpanel::JSON::Load( $res->{content} );
+    for my $idx ( 0 .. 10 ) {
+        my $release = $releases_hr->[$idx];
+        $version = $release->{tag_name};
+        die "Could not determine version from github\n" if !$version;
 
-    $version =~ s/^v//;
-    my $name = "$version.tar.gz";
-    my $url  = $latest->{tarball_url};
-
+        if ( $version =~ m/-rc/ ) {
+            warn "Skipping available release “$version”\n";
+            next;
+        }
+        else {
+            $version =~ s/^v//;
+            $name = "$version.tar.gz";
+            $url  = $release->{tarball_url};
+            last;
+        }
+    }
     return ( $version, $url, $name );
 }
 
