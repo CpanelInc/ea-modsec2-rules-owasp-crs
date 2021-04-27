@@ -2,7 +2,7 @@ Name: ea-modsec2-rules-owasp-crs
 Summary: OWASP ModSecurity Core Rule Set (CRS)
 Version: 3.3.1rc1
 # Doing release_prefix this way for Release allows for OBS-proof versioning, See EA-4544 for more details
-%define release_prefix 2
+%define release_prefix 3
 Release: %{release_prefix}%{?dist}.cpanel
 Vendor: cPanel, Inc.
 Group: System Environment/Libraries
@@ -186,8 +186,8 @@ if [ $1 -eq 0 ] ; then
     # 4. rebuild modsec2.cpanel.conf based on new modsec_cpanel_conf_datastore
     $PERL -MWhostmgr::ModSecurity::ModsecCpanelConf -e 'Whostmgr::ModSecurity::ModsecCpanelConf->new->manipulate(sub {})'
 
-    # 5. remove updates-disabled from conf
-    $PERL -MCpanel::SysPkgs -e 'my $pkg = "ea-modsec2-rules-owasp-crs";my $sp = Cpanel::SysPkgs->new;my ($parse, $write) = $sp->can("write_conf") ? qw(parse_conf write_conf) : qw(parse_yum_conf write_yum_conf);$parse="parse_pkgmgr_conf" if $sp->can("parse_pkgmgr_conf");$write = "write_pkgmgr_conf" if $sp->can("write_pkgmgr_conf");$sp->$parse;if ( grep { $_ eq $pkg } split /\s+/, $sp->{original_exclude_string} ) {$sp->{exclude_string} =~ s/(?:^$pkg$|^$pkg\s+|\s+$pkg\s+|\s+$pkg$)//g; $sp->$write;}'
+    # 5. remove updates-disabled from yum.conf
+    $PERL -MCpanel::SysPkgs -e 'my $pkg = "ea-modsec2-rules-owasp-crs";my $sp = Cpanel::SysPkgs->new;$sp->parse_yum_conf;if ( grep { $_ eq $pkg } split /\s+/, $sp->{original_exclude_string} ) {$sp->{exclude_string} =~ s/(?:^$pkg$|^$pkg\s+|\s+$pkg\s+|\s+$pkg$)//g; $sp->write_yum_conf;}'
 fi
 
 %posttrans
@@ -203,6 +203,9 @@ $PERL -MWhostmgr::ModSecurity::ModsecCpanelConf -e 'Whostmgr::ModSecurity::Modse
 /opt/cpanel/ea-modsec2-rules-owasp-crs/meta_OWASP3.yaml
 
 %changelog
+* Tue Apr 27 2021 Daniel Muey <dan@cpanel.net> - 3.3.1rc1-3
+- ZC-8787: Rolling “ea-modsec2-rules-owasp-crs” back to “3998949”: Need to get ZC-8756 out and do not want to publish an RC version
+
 * Tue Apr 13 2021 Daniel Muey <dan@cpanel.net> - 3.3.1rc1-2
 - ZC-8756: Update for upstream ULC changes
 
