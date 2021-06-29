@@ -2,7 +2,7 @@ Name: ea-modsec2-rules-owasp-crs
 Summary: OWASP ModSecurity Core Rule Set (CRS)
 Version: 3.3.0
 # Doing release_prefix this way for Release allows for OBS-proof versioning, See EA-4544 for more details
-%define release_prefix 8
+%define release_prefix 9
 Release: %{release_prefix}%{?dist}.cpanel
 Vendor: cPanel, Inc.
 Group: System Environment/Libraries
@@ -203,6 +203,9 @@ $PERL -MWhostmgr::ModSecurity::ModsecCpanelConf -e 'Whostmgr::ModSecurity::Modse
 /opt/cpanel/ea-modsec2-rules-owasp-crs/meta_OWASP3.yaml
 
 %changelog
+* Tue Jun 29 2021 Cory McIntire <cory@cpanel.net> - 3.3.0-9
+- EA-9913: Update DRUPAL ruleset for CVE-2021-35368
+
 * Tue May 18 2021 Cory McIntire <cory@cpanel.net> - 3.3.0-8
 -EA-9785: Revert non-working https fix from EA-9773
 
