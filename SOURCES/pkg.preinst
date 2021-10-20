@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# dpkg is evil, we depend on this behavior
+set +e
+
+PERL=/usr/local/cpanel/3rdparty/bin/perl
+if test -x "$PERL"; then
+    # NOOP
+    echo ""
+else
+    # during building this cannot be executed
+    exit 0
+fi
+
+if [ "$1" = "install" ] ; then
+    if [ -e "${_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old" ] ; then
+        unlink ${_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old
+    else
+        mkdir -p ${_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs
+    fi
+
+    DATE_SUBDIR=`date --iso-8601=seconds`
+    # on install move voodoo dir and conf file (and its cache) out of the way
+    if [ -d "/etc/apache2/conf.d/modsec_vendor_configs/OWASP3" ] ; then
+        touch ${_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old
+        mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR
+        mv /etc/apache2/conf.d/modsec_vendor_configs/OWASP3 ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR/
+    fi
+
+    if [ -f "/var/cpanel/modsec_vendors/meta_OWASP3.yaml" ] ; then
+        touch ${_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old
+        mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR
+        mv -f /var/cpanel/modsec_vendors/meta_OWASP3.yaml ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR/
+    fi
+
+    # this file is left behind when removing the vendor so it is not an indicator of if they have the old vendor or not
+    if [ -f "/var/cpanel/modsec_vendors/meta_OWASP3.cache" ] ; then
+        mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR
+        mv -f /var/cpanel/modsec_vendors/meta_OWASP3.cache ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR/
+    fi
+
+    # v2 is not compatible w/ EA4's mod sec version. We only want to back it up
+    if [ -d "/etc/apache2/conf.d/modsec_vendor_configs/OWASP" ] ; then
+        mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR
+        touch ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR/had_OWASP-v2
+        /usr/local/cpanel/scripts/modsec_vendor remove OWASP
+    fi
+fi
+
