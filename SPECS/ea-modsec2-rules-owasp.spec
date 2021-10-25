@@ -17,6 +17,8 @@ Source0: https://github.com/coreruleset/coreruleset/archive/%{version}.tar.gz
 Source1: new_includes.yaml
 Source2: meta_OWASP3.yaml
 Source3: pkg.prerm
+Source4: pkg.postinst
+Source5: pkg.preinst
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReq:   no
@@ -64,104 +66,10 @@ mkdir -p $RPM_BUILD_ROOT/var/cpanel/modsec_vendors/
 rm -rf $RPM_BUILD_ROOT
 
 %pre
-if [ $1 -eq 1 ] ; then
-    if [ -e "%{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old" ] ; then
-        unlink %{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old
-    else
-        mkdir -p %{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs
-    fi
-
-    DATE_SUBDIR=`date --iso-8601=seconds`
-    # on install move voodoo dir and conf file (and its cache) out of the way
-    if [ -d "/etc/apache2/conf.d/modsec_vendor_configs/OWASP3" ] ; then
-        touch %{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old
-        mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR
-        mv /etc/apache2/conf.d/modsec_vendor_configs/OWASP3 ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR/
-    fi
-
-    if [ -f "/var/cpanel/modsec_vendors/meta_OWASP3.yaml" ] ; then
-        touch %{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old
-        mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR
-        mv -f /var/cpanel/modsec_vendors/meta_OWASP3.yaml ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR/
-    fi
-
-    # this file is left behind when removing the vendor so it is not an indicator of if they have the old vendor or not
-    if [ -f "/var/cpanel/modsec_vendors/meta_OWASP3.cache" ] ; then
-        mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR
-        mv -f /var/cpanel/modsec_vendors/meta_OWASP3.cache ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR/
-    fi
-
-    # v2 is not compatible w/ EA4's mod sec version. We only want to back it up
-    if [ -d "/etc/apache2/conf.d/modsec_vendor_configs/OWASP" ] ; then
-        mkdir -p ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR
-        touch ~/old-cpanel-modsec2-rules-from-vendor-system/$DATE_SUBDIR/had_OWASP-v2
-        /usr/local/cpanel/scripts/modsec_vendor remove OWASP
-    fi
-fi
+%include %{SOURCE5}
 
 %post
-
-/usr/local/cpanel/3rdparty/bin/perl -MCpanel::CachedDataStore -e \
-  'my $hr=Cpanel::CachedDataStore::loaddatastore($ARGV[0]);$hr->{data}{OWASP3} = { distribution => "ea-modsec2-rules-owasp-crs", url => "N/A, it is done via RPM"};Cpanel::CachedDataStore::savedatastore($ARGV[0], { data => $hr->{data} })' \
-  /var/cpanel/modsec_vendors/installed_from.yaml
-
-UPDATES_DISABLED=0
-if [ ! -f "%{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old" ] ; then
-    /usr/local/cpanel/scripts/modsec_vendor enable OWASP3
-    /usr/local/cpanel/scripts/modsec_vendor enable-updates OWASP3
-else
-   PERL=/usr/local/cpanel/3rdparty/bin/perl
-
-   $PERL -MYAML::Syck -E 'my $h=YAML::Syck::LoadFile($ARGV[0]);exit(exists $h->{vendor_updates}{$ARGV[1]} ? 0 : 1);' /var/cpanel/modsec_cpanel_conf_datastore OWASP3
-   if [ "$?" -ne "0" ] ; then
-      UPDATES_DISABLED=1
-      # this will add the yum.conf exclude if it is missing
-      /usr/local/cpanel/scripts/modsec_vendor disable-updates OWASP3
-   fi
-fi
-
-DID_DEFAULTS=0
-if [ $1 -eq 1 ] ; then
-    if [ ! -f "%{_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old" ] ; then
-        grep --silent '  modsec_vendor_configs/OWASP3/' /var/cpanel/modsec_cpanel_conf_datastore
-        if [ "$?" -ne "0" ] ; then
-            DID_DEFAULTS=1
-            /usr/local/cpanel/scripts/modsec_vendor enable-configs OWASP3
-        fi
-    fi
-fi
-
-if [ "$DID_DEFAULTS" -eq "0" -a "$UPDATES_DISABLED" -eq "0" ] ; then
-    echo "Checking new rules"
-    ADDED_NEW_RULE=0
-    NEWRULES_PATH=/opt/cpanel/ea-modsec2-rules-owasp-crs/new_includes.yaml
-    NEWRULES_REL=/etc/apache2/conf.d/modsec_vendor_configs/OWASP3/rules
-    CONFIG_REL=modsec_vendor_configs/OWASP3/rules
-    PERL=/usr/local/cpanel/3rdparty/bin/perl
-
-
-    for RULE in $($PERL -MYAML::Syck -e 'my $h=YAML::Syck::LoadFile($ARGV[0]);if (exists $h->{$ARGV[1]}) { print "$_\n" for @{ $h->{$ARGV[1]} } }' $NEWRULES_PATH %{version})
-    do
-        $PERL -MYAML::Syck -e 'my $h=YAML::Syck::LoadFile($ARGV[0]);exit( $h->{active_configs}{$ARGV[1]} ? 0 : 1)' /var/cpanel/modsec_cpanel_conf_datastore $CONFIG_REL/$RULE
-        if [ "$?" -eq "1" ] ; then
-            SYNTAX_CHECK=$(/usr/sbin/httpd -DSSL -e error -t -f /etc/apache2/conf/httpd.conf -C "Include '$NEWRULES_REL/$RULE'" 2>&1)
-            if [ "$?" -eq "0" ] ; then
-                ADDED_NEW_RULE=1
-                echo "Adding new rule set: $RULE"
-                $PERL -MYAML::Syck -e 'my $h=YAML::Syck::LoadFile($ARGV[0]);$h->{active_configs}{$ARGV[1]} = 1;YAML::Syck::DumpFile($ARGV[0], $h)' /var/cpanel/modsec_cpanel_conf_datastore $CONFIG_REL/$RULE
-            else
-                MSG="New rule set ($RULE) could not be added due to this error:\n$SYNTAX_CHECK\n"
-                echo -e $MSG
-                echo -e "[%{name} v%{version}-%{release}]\n$MSG[/%{name}]\n" >> /usr/local/cpanel/logs/error_log
-            fi
-        fi
-    done
-
-    if [ "$ADDED_NEW_RULE" -eq "1" ] ; then
-        echo "Rebuilding /etc/apache2/conf.d/modsec/modsec2.cpanel.conf with new rules"
-        $PERL -MWhostmgr::ModSecurity::ModsecCpanelConf -e 'Whostmgr::ModSecurity::ModsecCpanelConf->new->manipulate(sub {})'
-    fi
-fi
+%include %{SOURCE4}
 
 %preun
 %include %{SOURCE3}

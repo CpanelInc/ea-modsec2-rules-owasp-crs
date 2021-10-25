@@ -2,6 +2,7 @@
 
 # dpkg is evil, we depend on this behavior
 set +e
+set -x
 
 PERL=/usr/local/cpanel/3rdparty/bin/perl
 if test -x "$PERL"; then
@@ -32,7 +33,7 @@ else
 fi
 
 DID_DEFAULTS=0
-if [ "$1" = "configure" ] ; then
+if [ "$1" = "configure" ] || [ "$1" = "1" ] ; then
     if [ ! -f "${_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old" ] ; then
         # Ubuntu dpkg freaks out when the result is 1
         grep --silent '  modsec_vendor_configs/OWASP3/' /var/cpanel/modsec_cpanel_conf_datastore
