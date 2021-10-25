@@ -3,6 +3,8 @@
 # dpkg is evil, we depend on this behavior
 set +e
 
+set -x
+
 PERL=/usr/local/cpanel/3rdparty/bin/perl
 if test -x "$PERL"; then
     # NOOP
@@ -12,7 +14,7 @@ else
     exit 0
 fi
 
-if [ "$1" = "remove" ] ; then
+if [ "$1" = "remove" ] || [ "$1" = "0" ] ; then
     echo "Removing OWASP3 config"
     PERL=/usr/local/cpanel/3rdparty/bin/perl
 
@@ -36,8 +38,8 @@ if [ "$1" = "remove" ] ; then
 
     # 5. remove updates-disabled from conf
 
-    # Sorry to me this is way too complex for a one liner
-    cat << EOT > update.pl
+    update_name="update_$$.pl"
+    cat << EOT > $update_name
 use strict;
 use warnings;
 
@@ -45,17 +47,27 @@ use Cpanel::SysPkgs;
 
 my \$pkg = "ea-modsec2-rules-owasp-crs";
 my \$sp = Cpanel::SysPkgs->new;
-# This code is not available pre v102, so it cannot be executed.  This code is
-# only executed on Ubuntu btw
 if (\$sp->can("drop_exclude_rule_for_package")) {
+    # This clause is for v102+
     print "calling drop_exclude_rule_for_package\n";
     \$sp->drop_exclude_rule_for_package (\$pkg);
+}
+else {
+    # This clause is for v100-
+    my (\$parse, \$write) = \$sp->can("write_conf") ? qw(parse_conf write_conf) : qw(parse_yum_conf write_yum_conf);
+    \$parse="parse_pkgmgr_conf" if \$sp->can("parse_pkgmgr_conf");
+    \$write = "write_pkgmgr_conf" if \$sp->can("write_pkgmgr_conf");
+    \$sp->\$parse;
+    if ( grep { \$_ eq \$pkg } split /\s+/, \$sp->{original_exclude_string} ) {
+        \$sp->{exclude_string} =~ s/(?:^\$pkg\$|^\$pkg\s+|\s+\$pkg\s+|\s+\$pkg\$)//g;
+        \$sp->\$write;
+    }
 }
 exit 0;
 EOT
 
-    $PERL update.pl
-    /bin/rm -f update.pl
+    $PERL $update_name
+    /bin/rm -f $update_name
 
 fi
 
