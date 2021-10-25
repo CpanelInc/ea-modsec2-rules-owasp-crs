@@ -16,6 +16,7 @@ Requires: ea-apache24-mod_security2
 Source0: https://github.com/coreruleset/coreruleset/archive/%{version}.tar.gz
 Source1: new_includes.yaml
 Source2: meta_OWASP3.yaml
+Source3: pkg.prerm
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 AutoReq:   no
@@ -163,32 +164,7 @@ if [ "$DID_DEFAULTS" -eq "0" -a "$UPDATES_DISABLED" -eq "0" ] ; then
 fi
 
 %preun
-
-if [ $1 -eq 0 ] ; then
-    echo "Removing OWASP3 config"
-    PERL=/usr/local/cpanel/3rdparty/bin/perl
-
-    # We can't `/usr/local/cpanel/scripts/modsec_vendor remove OWASP3`
-    #   because it also removes the RPM owned files creating many warnings later
-    #   so we emulate the bits we need
-
-    # 1. update installed_from.yaml
-    $PERL -MCpanel::CachedDataStore -e \
-      'my $hr=Cpanel::CachedDataStore::loaddatastore($ARGV[0]);delete $hr->{data}{OWASP3};Cpanel::CachedDataStore::savedatastore($ARGV[0], { data => $hr->{data} })' \
-      /var/cpanel/modsec_vendors/installed_from.yaml
-
-    # 2. update modsec_cpanel_conf_datastore
-    $PERL -MYAML::Syck -e 'my $h=YAML::Syck::LoadFile($ARGV[0]);delete $h->{active_vendors}{OWASP3};delete $h->{vendor_updates}{OWASP3};for my $rid (keys %{$h->{disabled_rules}}) { delete $h->{disabled_rules}{$rid} if $h->{disabled_rules}{$rid} eq "OWASP3" } for my $pth (keys %{$h->{active_configs}}) { delete $h->{active_configs}{$pth} if $pth =~ m{^modsec_vendor_configs/OWASP3/} } YAML::Syck::DumpFile($ARGV[0], $h)' /var/cpanel/modsec_cpanel_conf_datastore
-
-    #. 3 kill caches
-    rm -rf /var/cpanel/modsec_vendors/meta_OWASP3.cache /var/cpanel/modsec_vendors/installed_from.cache /var/cpanel/modsec_cpanel_conf_datastore.cache
-
-    # 4. rebuild modsec2.cpanel.conf based on new modsec_cpanel_conf_datastore
-    $PERL -MWhostmgr::ModSecurity::ModsecCpanelConf -e 'Whostmgr::ModSecurity::ModsecCpanelConf->new->manipulate(sub {})'
-
-    # 5. remove updates-disabled from conf
-    $PERL -MCpanel::SysPkgs -e 'my $pkg = "ea-modsec2-rules-owasp-crs";my $sp = Cpanel::SysPkgs->new;my ($parse, $write) = $sp->can("write_conf") ? qw(parse_conf write_conf) : qw(parse_yum_conf write_yum_conf);$parse="parse_pkgmgr_conf" if $sp->can("parse_pkgmgr_conf");$write = "write_pkgmgr_conf" if $sp->can("write_pkgmgr_conf");$sp->$parse;if ( grep { $_ eq $pkg } split /\s+/, $sp->{original_exclude_string} ) {$sp->{exclude_string} =~ s/(?:^$pkg$|^$pkg\s+|\s+$pkg\s+|\s+$pkg$)//g; $sp->$write;}'
-fi
+%include %{SOURCE3}
 
 %posttrans
 
