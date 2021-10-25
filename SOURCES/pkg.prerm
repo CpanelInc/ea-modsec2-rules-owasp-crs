@@ -2,7 +2,6 @@
 
 # dpkg is evil, we depend on this behavior
 set +e
-
 set -x
 
 PERL=/usr/local/cpanel/3rdparty/bin/perl
@@ -49,7 +48,6 @@ my \$pkg = "ea-modsec2-rules-owasp-crs";
 my \$sp = Cpanel::SysPkgs->new;
 if (\$sp->can("drop_exclude_rule_for_package")) {
     # This clause is for v102+
-    print "calling drop_exclude_rule_for_package\n";
     \$sp->drop_exclude_rule_for_package (\$pkg);
 }
 else {
