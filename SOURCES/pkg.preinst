@@ -13,6 +13,16 @@ else
     exit 0
 fi
 
+# When included into the spec file, the spec file cannot access the `${` vars
+# as they are.
+
+if [ "${_localstatedir}" = "" ]; then
+    _localstatedir="%{_localstatedir}"
+    name="%{name}"
+    version="%{version}"
+    release="%{release}"
+fi
+
 if [ "$1" = "install" ] || [ "$1" = "1" ] ; then
     if [ -e "${_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old" ] ; then
         unlink ${_localstatedir}/lib/rpm-state/ea-modsec2-rules-owasp-crs/had_old
