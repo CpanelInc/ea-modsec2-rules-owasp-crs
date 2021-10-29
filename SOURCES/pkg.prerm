@@ -2,7 +2,6 @@
 
 # dpkg is evil, we depend on this behavior
 set +e
-set -x
 
 PERL=/usr/local/cpanel/3rdparty/bin/perl
 if test -x "$PERL"; then
