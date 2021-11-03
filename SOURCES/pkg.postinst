@@ -23,7 +23,7 @@ if [ "${_localstatedir}" = "" ]; then
 fi
 
 /usr/local/cpanel/3rdparty/bin/perl -MCpanel::CachedDataStore -e \
-  'my $hr=Cpanel::CachedDataStore::loaddatastore($ARGV[0]);$hr->{data}{OWASP3} = { distribution => "ea-modsec2-rules-owasp-crs", url => "N/A, it is done via RPM"};Cpanel::CachedDataStore::savedatastore($ARGV[0], { data => $hr->{data} })' \
+  'my $hr=Cpanel::CachedDataStore::loaddatastore($ARGV[0]);$hr->{data}{OWASP3} = { distribution => "ea-modsec2-rules-owasp-crs", url => "N/A, it is done via PKG"};Cpanel::CachedDataStore::savedatastore($ARGV[0], { data => $hr->{data} })' \
   /var/cpanel/modsec_vendors/installed_from.yaml
 
 UPDATES_DISABLED=0
@@ -36,7 +36,7 @@ else
    $PERL -MYAML::Syck -E 'my $h=YAML::Syck::LoadFile($ARGV[0]);exit(exists $h->{vendor_updates}{$ARGV[1]} ? 0 : 1);' /var/cpanel/modsec_cpanel_conf_datastore OWASP3
    if [ "$?" -ne "0" ] ; then
         UPDATES_DISABLED=1
-        # this will add the yum.conf exclude if it is missing
+        # this will add the exclude to the package managers configuration file if it is missing
         /usr/local/cpanel/scripts/modsec_vendor disable-updates OWASP3
    fi
 fi
