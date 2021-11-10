@@ -17,7 +17,7 @@ if [ "$1" = "remove" ] || [ "$1" = "0" ] ; then
     PERL=/usr/local/cpanel/3rdparty/bin/perl
 
     # We can't `/usr/local/cpanel/scripts/modsec_vendor remove OWASP3`
-    #   because it also removes the RPM owned files creating many warnings later
+    #   because it also removes the PKG owned files creating many warnings later
     #   so we emulate the bits we need
 
     # 1. update installed_from.yaml

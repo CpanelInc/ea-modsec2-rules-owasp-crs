@@ -2,7 +2,7 @@ Name: ea-modsec2-rules-owasp-crs
 Summary: OWASP ModSecurity Core Rule Set (CRS)
 Version: 3.3.2
 # Doing release_prefix this way for Release allows for OBS-proof versioning, See EA-4544 for more details
-%define release_prefix 2
+%define release_prefix 3
 Release: %{release_prefix}%{?dist}.cpanel
 Vendor: cPanel, Inc.
 Group: System Environment/Libraries
@@ -87,6 +87,9 @@ $PERL -MWhostmgr::ModSecurity::ModsecCpanelConf -e 'Whostmgr::ModSecurity::Modse
 /opt/cpanel/ea-modsec2-rules-owasp-crs/meta_OWASP3.yaml
 
 %changelog
+* Wed Nov 03 2021 Travis Holloway <t.holloway@cpanel.net> - 3.3.2-3
+- EA-10240: Update verbiage to be OS neutral
+
 * Wed Oct 20 2021 Dan Muey <dan@cpanel.net> - 3.3.2-2
 - ZC-9412: Add `is_pkg` for 102 and beyond
 
