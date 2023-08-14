@@ -9,8 +9,6 @@ package ea_repo_name_goes_here::find_latest_version;
 use strict;
 use warnings;
 
-use Cpanel::JSON::XS;
-
 use lib "../ea-tools/lib/ea4_tool";    # assumes ea-tools is checked out next to this repo
 use ea4_tool::util ();
 
@@ -30,7 +28,7 @@ sub _get_required {
 
     # get $version, $url, $name from $res
     my ( $version, $url, $name );
-    my $releases_hr = Cpanel::JSON::Load( $res->{content} );
+    my $releases_hr = ea4_tool::util::json2ref( $res->{content} );
     for my $idx ( 0 .. 10 ) {
         my $release = $releases_hr->[$idx];
         $version = $release->{tag_name};
