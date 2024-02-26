@@ -34,7 +34,7 @@ sub _get_required {
         $version = $release->{tag_name};
         die "Could not determine version from github\n" if !$version;
 
-        if ( $version !~ m/^v?[0-9\.]+$/ ) {
+        if ( $version !~ m/^v?3\.[0-9\.]+$/ ) {
             warn "Skipping available release “$version”\n";
             next;
         }
