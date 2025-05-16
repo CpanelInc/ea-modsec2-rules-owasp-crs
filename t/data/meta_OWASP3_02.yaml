@@ -1,8 +1,8 @@
---- 
-attributes: 
-  description: OWASP ModSecurity 2.9 Core Rule Set v3.3.7
+---
+attributes:
   installed_from: https://httpupdate.cpanel.net/fake-URL-to-show-vendor-correctly-with-pkg/with-pkgs-this-field-is-irrelevant/meta_OWASP3.yaml
+  vendor_url: https://go.cpanel.net/modsecurityowasp
+  description: OWASP ModSecurity 2.9 Core Rule Set v3.3.7
+  name: OWASP CRS v3.x for ModSec 2.9
   is_pkg: ea-modsec2-rules-owasp-crs
   is_rpm: ea-modsec2-rules-owasp-crs
-  name: OWASP CRS v3.x for ModSec 2.9
-  vendor_url: https://go.cpanel.net/modsecurityowasp

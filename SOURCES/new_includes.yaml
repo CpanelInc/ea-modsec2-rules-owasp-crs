@@ -1,7 +1,7 @@
 # key is the version introduced
 # the value is a list of paths relative to /etc/apache2/conf.d/modsec_vendor_configs/OWASP3/rules
----
-3.3.0:
+--- 
+3.3.0: 
   - REQUEST-903.9001-DRUPAL-EXCLUSION-RULES.conf
   - REQUEST-903.9002-WORDPRESS-EXCLUSION-RULES.conf
   - REQUEST-903.9003-NEXTCLOUD-EXCLUSION-RULES.conf
@@ -12,5 +12,7 @@
   - REQUEST-932-APPLICATION-ATTACK-RCE.conf
   - REQUEST-934-APPLICATION-ATTACK-NODEJS.conf
   - REQUEST-944-APPLICATION-ATTACK-JAVA.conf
-3.3.4:
+3.3.4: 
   - REQUEST-922-MULTIPART-ATTACK.conf
+3.3.7: []
+
