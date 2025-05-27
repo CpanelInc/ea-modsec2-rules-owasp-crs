@@ -1,20 +1,21 @@
-# Additional update considerations
+# 📌 Additional Update Considerations
 
-After this package is updated via `et update` the following will also need to be done:
+When performing an `et update`, please keep the following steps and dependencies in mind:
 
-1. Update the version in SOURCES/meta_OWASP3.yaml
-2. Add the list of new rule sets to SOURCES/new_includes.yaml
-   * the format is explained at the top of the file in a comment
-      * add the version as a new key
-      * add the list of new files (name only) as its value
-   * if there are no new rule sets this file does not need changed
-3. Update the version of derived packages:
-   * e.g. `et change ea-modsec30-rules-owasp-crs ZC-NNN "Bump verison to match upstream" 3.N.N`
+1. **Metadata Synchronization**
+   - All metadata is updated to reflect the current values during the `et update` process.
 
-Some ideas to consider:
+2. **Triggering a Change for `ea-modsec30-rules-owasp-crs`**
+   - An `et change` is initiated for `ea-modsec30-rules-owasp-crs`.
+   - This includes building the package on OBS (Open Build Service).
 
-1. Build SOURCES/meta_OWASP3.yaml in the SPEC file so it does not not need updated.
-2. Have a script that updates SOURCES/new_includes.yaml for us.
-3. Have 1, 2, and 3 be automatic and make this document moot by implementing ZC-7313.
-4. If possible, get the version they were on at the beginning of the transaction and step though all versions’ new rule sets (i.e. instead of just the newest one).
+3. **Dependency on `ea-modsec2-rules-owasp-crs`**
+   - The change for `ea-modsec30-rules-owasp-crs` **cannot be completed** until the corresponding update to `ea-modsec2-rules-owasp-crs` has been **merged into the `main` branch**. And **built on `EA4`**.
 
+4. **Finalizing the Build**
+   - Once `ea-modsec2-rules-owasp-crs` is merged to `main` and **built on `EA4`**, you must run:
+     ```bash
+     cd ~/git/ea-modsec30-rules-owasp-crs
+     et obs --watch
+     ```
+   - This completes the build and deployment process for `ea-modsec30-rules-owasp-crs`.

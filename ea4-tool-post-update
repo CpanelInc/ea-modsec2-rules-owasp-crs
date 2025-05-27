@@ -1,0 +1,219 @@
+#!/usr/local/cpanel/3rdparty/bin/perl
+
+#                                      Copyright 2025 WebPros International, LLC
+#                                                           All rights reserved.
+# copyright@cpanel.net                                         http://cpanel.net
+# This code is subject to the cPanel license. Unauthorized copying is prohibited.
+
+package ea_modsec2_rules_owasp_crs::ea4_tool_post_update;
+
+use strict;
+use warnings;
+
+use Data::Dumper;
+use Cpanel::YAML::Syck;
+use File::chdir;
+use File::Basename;
+use FindBin;
+use Path::Tiny;
+
+use lib "../ea-tools/lib/ea4_tool";    # assumes ea-tools is checked out next to this repo
+use ea4_tool::util ();
+
+# make sure constants are set prior to run
+my $work_dir = "_workdir";
+
+run(@ARGV) if !caller;
+
+sub run {
+    my ( $old_version, $current_version ) = @_;
+
+    my $new_includes_hr = get_new_includes_hr();
+
+    my ( $old_hr, $current_hr ) = getcorerulesets( $old_version, $current_version );
+
+    $old_hr->{rulesets}     = get_rules_from_ruleset($old_hr);
+    $current_hr->{rulesets} = get_rules_from_ruleset($current_hr);
+
+    my $new_rules_ar = get_new_rules( $old_hr, $current_hr );
+    my $output_hr    = create_new_includes( $new_includes_hr, $current_hr, $new_rules_ar );
+    if ($output_hr) {
+        my $new_includes_file = "SOURCES/new_includes.yaml";
+        my $yaml_raw          = YAML::Syck::Dump($output_hr);
+        my $output            = "# key is the version introduced\n";
+        $output .= "# the value is a list of paths relative to /etc/apache2/conf.d/modsec_vendor_configs/OWASP3/rules\n";
+        $output .= $yaml_raw;
+
+        print "Updated new_includes.yaml\n";
+        path($new_includes_file)->spew($output);
+    }
+    else {
+        print "new_includes.yaml is already up to date.\n";
+    }
+
+    my $new_meta_OWASP3 = update_meta_OWASP3( $current_version, "SOURCES/meta_OWASP3.yaml" );
+    if ($new_meta_OWASP3) {
+        print "Updated meta_OWASP3.yaml\n";
+        my $meta_OWASP3_file = "SOURCES/meta_OWASP3.yaml";
+        YAML::Syck::DumpFile( $meta_OWASP3_file, $new_meta_OWASP3 );
+    }
+    else {
+        print "meta_OWASP3.yaml is already up to date.\n";
+    }
+
+    update_modsec30($current_version);
+}
+
+sub get_new_includes_hr {
+    my $new_includes_hr = YAML::Syck::LoadFile("SOURCES/new_includes.yaml");
+    return $new_includes_hr;
+}
+
+sub getcorerulesets {
+    my ( $most_recent_version, $current_version ) = @_;
+
+    my @release_aoh;
+
+    for my $version ( $most_recent_version, $current_version ) {
+        my $name = "$version.tar.gz";
+        my $url  = "https://api.github.com/repos/coreruleset/coreruleset/tarball/v$version";
+        push @release_aoh, { version => $version, url => $url, name => $name };
+    }
+
+    return @release_aoh;
+}
+
+# Compare two version strings
+sub compare_versions {
+    my ( $a, $b ) = @_;
+    my @a_parts = split /\./, $a;
+    my @b_parts = split /\./, $b;
+
+    # Compare each part numerically
+    return
+         $a_parts[0] <=> $b_parts[0]
+      || $a_parts[1] <=> $b_parts[1]
+      || $a_parts[2] <=> $b_parts[2];
+}
+
+sub get_tar_contents {
+    my ( $url, $name ) = @_;
+    system("wget -q $url -O $name");
+    my @tf = split( /\n/, `tar -tzf $name` );
+    return @tf;
+}
+
+sub get_rules_from_ruleset {
+    my ($hr) = @_;
+
+    # prepare a work_dir
+
+    my %rulesets_hash;
+
+    system("rm -rf $work_dir; mkdir $work_dir");
+    {
+        local $CWD = $work_dir;
+
+        my @tf = get_tar_contents( $hr->{url}, $hr->{name} );
+        foreach my $line ( grep { m:/rules/.*\.conf$: } @tf ) {
+            my $ruleset = $line;
+            $ruleset =~ s:^.*/rules/(.*)\.conf:$1:;    # remove the path and .conf
+            $rulesets_hash{$ruleset} = 1;
+        }
+    }
+    system("rm -rf $work_dir");
+
+    return \%rulesets_hash;
+}
+
+sub get_new_rules {
+    my ( $old_hr, $current_hr ) = @_;
+
+    my @new_rules = ();
+    foreach my $rule ( keys %{ $current_hr->{rulesets} } ) {
+        push( @new_rules, $rule ) if ( !exists $old_hr->{rulesets}->{$rule} );
+    }
+
+    return \@new_rules;
+}
+
+sub create_new_includes {
+    my ( $new_includes_hr, $current_hr, $new_rules_ar ) = @_;
+
+    my $current_version = $current_hr->{version};
+
+    if ( !exists $new_includes_hr->{$current_version} ) {
+        $new_includes_hr->{$current_version} = $new_rules_ar;
+        return $new_includes_hr;
+    }
+
+    return undef;
+}
+
+sub update_meta_OWASP3 {
+    my ( $current_version, $yaml_fname ) = @_;
+    my $meta_OWASP3_hr = YAML::Syck::LoadFile($yaml_fname);
+
+    my $description = "$meta_OWASP3_hr->{attributes}->{description}";
+    $meta_OWASP3_hr->{attributes}->{description} =~ s/Set v3\.[0-9\.]+$/Set v$current_version/;
+    return $meta_OWASP3_hr if $description ne $meta_OWASP3_hr->{attributes}->{description};
+
+    return undef;
+}
+
+sub update_modsec30 {
+    my ($current_version) = @_;
+
+    my $modsec2_git = ea4_tool::util::git($CWD);
+
+    my $modsec30_dir = ea4_tool::util::get_path_of_repo("ea-modsec30-rules-owasp-crs");
+    if ( !-d $modsec30_dir ) {
+        print "$modsec30_dir directory not found, et change was not run\n";
+        return;
+    }
+
+    my $modsec30_git = ea4_tool::util::git($modsec30_dir);
+
+    print "Making $modsec30_dir pristine\n";
+    ea4_tool::util::git_pristine($modsec30_git);
+
+    # what branch am I on?
+    my $branch = $modsec2_git->current_branch();
+    my $jira_case;
+    if ( $branch =~ m/^([a-zA-Z]+\-\d+)/ ) {
+        $jira_case = $1;
+    }
+
+    die "Unable to determine Jira Case from branch name :$branch:\n" if !$jira_case;
+
+    my $specfile = "$modsec30_dir/SPECS/ea-modsec30-rules-owasp-crs.spec";
+
+    my $spec_version = ea4_tool::util::spec_get_version($specfile);
+    if ( $spec_version ne $current_version ) {
+        local $CWD = $modsec30_dir;
+
+        # need to run an et change
+        my $changelog = "Bump version to match upstream";
+        ea4_tool::cmd::change::run( undef, ".", $jira_case, $changelog, $current_version );
+        my $new_branch = $modsec30_git->current_branch();
+        my $default    = ea4_tool::util::git_default_branch($modsec30_git);
+
+        ea4_tool::util::pushup( $modsec30_git, $new_branch );
+
+        my $gitapi = ea4_tool::util::gitapi->new();
+        my $title  = "$jira_case: $changelog";
+
+        my $repo = "ea-modsec30-rules-owasp-crs";
+        $gitapi->create_pull_request( $repo => $title, $new_branch => $default );
+
+        print "Build $repo in home directory\n";
+        ea4_tool::cmd::obs::run(undef);
+    }
+    else {
+        print "ea-modsec30-rules-owasp-crs is already at version $current_version\n";
+    }
+}
+
+1;
+
+__END__
