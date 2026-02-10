@@ -89,6 +89,7 @@ $PERL -MWhostmgr::ModSecurity::ModsecCpanelConf -e 'Whostmgr::ModSecurity::Modse
 %changelog
 * Tue Jan 06 2026 Cory McIntire <cory.mcintire@webpros.com> - 3.3.8-1
 - EA-13308: Update ea-modsec2-rules-owasp-crs from v3.3.7 to v3.3.8
+- CVE-2026-21876: Rule 922110 only validates the LAST multipart part’s charset, allowing malicious charsets in earlier parts to bypass detection
 
 * Thu May 29 2025 Julian Brown <julian.brown@webpros.com> - 3.3.7-3
 - ZC-12873: Correct issue with WHM Modsecurity UI
