@@ -1,6 +1,6 @@
 --- 
 attributes: 
-  description: OWASP ModSecurity 2.9 Core Rule Set v3.3.8
+  description: OWASP ModSecurity 2.9 Core Rule Set v3.3.9
   installed_from: https://httpupdate.cpanel.net/fake-URL-to-show-vendor-correctly-with-pkg/with-pkgs-this-field-is-irrelevant/meta_OWASP3.yaml
   is_pkg: ea-modsec2-rules-owasp-crs
   is_rpm: ea-modsec2-rules-owasp-crs
