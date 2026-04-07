@@ -89,6 +89,7 @@ $PERL -MWhostmgr::ModSecurity::ModsecCpanelConf -e 'Whostmgr::ModSecurity::Modse
 %changelog
 * Sun Mar 29 2026 EA4 Update Bot <cory.mcintire@webpros.com> - 3.3.9-1
 - EA-13393: Update ea-modsec2-rules-owasp-crs from v3.3.8 to v3.3.9
+- CVE-2026-33691: File upload detection bypass via whitespace padding in PHP double-extension, PHP upload, and JSP file upload detection
 
 * Tue Jan 06 2026 Cory McIntire <cory.mcintire@webpros.com> - 3.3.8-1
 - EA-13308: Update ea-modsec2-rules-owasp-crs from v3.3.7 to v3.3.8
